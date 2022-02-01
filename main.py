@@ -1,16 +1,8 @@
-#Convert number to reversed array of digits
-#Given a random non-negative number, you have to return the digits of this number within an array in reverse order.
-
-#Example:
-#348597 => [7,9,5,8,4,3]
-#0 => [0]
-
-def convert(number):
-    string = str(number)
-    array = []
-    for c in reversed(string):
-        array.append(int(c))
-    return array
+#Build a function that returns an array of integers from n to 1 where n>0.
+#Example : n=5 --> [5,4,3,2,1]
 
 
-print(convert(348597))
+def reverse_seq(n):
+    return list(range(n, 0, -1))
+
+print(reverse_seq(100))
