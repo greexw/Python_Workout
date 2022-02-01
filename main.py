@@ -1,15 +1,16 @@
+#Convert number to reversed array of digits
+#Given a random non-negative number, you have to return the digits of this number within an array in reverse order.
 
-def bubble_sort(list_to_sort):
-    n = 1
-    while n != 0: #until neither element was sorted in last run of for loop
-        n = 0
-        for i in range(len(list_to_sort)-1):
-            if list_to_sort[i] > list_to_sort[i+1]:
-                list_to_sort[i], list_to_sort[i+1] = list_to_sort[i+1], list_to_sort[i]
-                n += 1
-    return list_to_sort
+#Example:
+#348597 => [7,9,5,8,4,3]
+#0 => [0]
+
+def convert(number):
+    string = str(number)
+    array = []
+    for c in reversed(string):
+        array.append(int(c))
+    return array
 
 
-before_sort = [7, 1, 3, 6, 15, 2, 8, 19, 4]
-print("Before sort: ", before_sort)
-print("After sort: ", bubble_sort(before_sort))
+print(convert(348597))
