@@ -1,34 +1,13 @@
-#Find the stray number
-# You are given an odd-length array of integers, in which all of them are the same, except for one single number.
-#
-# Complete the method which accepts such an array, and returns that single different number.
-#
-# The input array will always be valid! (odd-length >= 3)
-#
-# Examples
-# [1, 1, 2] ==> 2
-# [17, 17, 3, 17, 17, 17, 17] ==> 3
+import colorgram
+from PIL import Image
 
+rgb_colors = []
+colors = colorgram.extract('image.jpg', 10)  # extract 10 colors from the image
+for color in colors:
+    rgb_colors.append([color.rgb.r, color.rgb.g, color.rgb.b])  # append to rgb_colors colors after formatted
 
-def stray(arr):
-    x_count, y_count = 0, 0
-    x, y = arr[0], None
-    for number in arr:
-        if number == x:
-            x = number
-            x_count += 1
-        else:
-            y = number
-            y_count += 1
+print(rgb_colors)
 
-    if x_count == 1:
-        return x
-    elif y_count == 1:
-        return y
-    else:
-        return "error"
-
-
-print(stray([2, 3, 2, 2, 2]))
-print(stray([1, 1, 1, 1, 1, 1, 2]))
-print(stray([3, 2, 2, 2, 2]))
+img = Image.open('image.jpg')
+color_from_pixel = img.getpixel((100, 100))  # other way - extract color from specific pixel
+print(color_from_pixel)
