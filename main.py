@@ -1,13 +1,44 @@
-import colorgram
-from PIL import Image
+from turtle import Screen
+import time
+from snake import Snake
+from food import Food
+from scoreboard import Scoreboard
 
-rgb_colors = []
-colors = colorgram.extract('image.jpg', 10)  # extract 10 colors from the image
-for color in colors:
-    rgb_colors.append([color.rgb.r, color.rgb.g, color.rgb.b])  # append to rgb_colors colors after formatted
+screen = Screen()
+screen.setup(width=600, height=600)
+screen.bgcolor("black")
+screen.title("Snake 1.0")
+screen.tracer(0)
 
-print(rgb_colors)
+snake = Snake()
+food = Food()
+scoreboard = Scoreboard()
 
-img = Image.open('image.jpg')
-color_from_pixel = img.getpixel((100, 100))  # other way - extract color from specific pixel
-print(color_from_pixel)
+screen.listen()
+screen.onkey(snake.up, "Up")
+screen.onkey(snake.down, "Down")
+screen.onkey(snake.left, "Left")
+screen.onkey(snake.right, "Right")
+
+
+game_is_on = True
+while game_is_on:
+    screen.update()
+    time.sleep(0.1)
+    snake.move()
+
+    if snake.head.distance(food) < 15:
+        food.refresh()
+        snake.extend()
+        scoreboard.increase()
+
+    if snake.head.xcor() > 290 or snake.head.xcor() < -290 or snake.head.ycor() > 290 or snake.head.ycor() < -290:
+        game_is_on = False
+        scoreboard.game_over()
+
+    for part in snake.snake_parts[1:]:
+        if snake.head.distance(part) < 10:
+            game_is_on = False
+            scoreboard.game_over()
+
+screen.exitonclick()
