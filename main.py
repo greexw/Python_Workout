@@ -1,21 +1,65 @@
-from question_model import Question
-from data import question_data
-from quiz_brain import QuizBrain
-from ui import GameInterface
+import requests
+from twilio.rest import Client
 
-question_bank = []
-for question in question_data:
-    question_text = question["question"]
-    question_answer = question["correct_answer"]
-    new_question = Question(question_text, question_answer)
-    question_bank.append(new_question)
+API_KEY = ""
+OWM_Endpoint = ""
+ACCOUNT_SID = ""
+AUTH_TOKEN = ""
+
+weather_params = {
+    "lat": 51.50,
+    "lon": -0.5,
+    "appid": API_KEY,
+    "exclude": "current,minutely,daily",
+}
+
+will_rain = False
+
+response = requests.get(OWM_Endpoint, params=weather_params)
+response.raise_for_status()
+weather_data = response.json()
+weather_slice = weather_data["hourly"][:12]
+for hour_data in weather_slice:
+    condition_code = hour_data["weather"][0]["id"]
+    if condition_code < 700:
+        will_rain = True
+
+if will_rain:
+    client = Client(ACCOUNT_SID, AUTH_TOKEN)
+    message = client.messages \
+       .create(
+       body="It's goint to rain today! Bring umbrella with you.",
+       from_='',
+       to=''
+    )
+    print(message.status)
 
 
-quiz = QuizBrain(question_bank)
-interface = GameInterface(quiz)
 
-# while quiz.still_has_questions():
-#     quiz.next_question()
 
-print("You've completed the quiz")
-print(f"Your final score was: {quiz.score}/{quiz.question_number}")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
