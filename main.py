@@ -1,42 +1,50 @@
 import requests
-import datetime
+from datetime import datetime
 
-STOCK = "AAPL"
-COMPANY_NAME = "Apple Inc"
-AH_APIKEY = ""
-AH_API_URL = "https://www.alphavantage.co/query?"
-NA_APIKEY = ""
-NA_API_URL = "https://newsapi.org/v2/everything"
+TODAY = datetime.now().strftime("%Y%m%d")
+USERNAME = ""
+TOKEN = ""
+PIXELA_ENDPOINT = "https://pixe.la/v1/users"
+GRAPH_ENDPOINT = f"{PIXELA_ENDPOINT}/{USERNAME}/graphs"
+PIXEL_POST_ENDPOINT = f"{PIXELA_ENDPOINT}/{USERNAME}/graphs/graph1"
+PIXEL_UPDATE_ENDPOINT = f"{PIXELA_ENDPOINT}/{USERNAME}/graphs/graph1/{TODAY}"
 
-ah_parameters = {
-    "function": "TIME_SERIES_DAILY",
-    "symbol": STOCK,
-    "apikey": AH_APIKEY,
+headers = {
+    "X-USER-TOKEN": TOKEN
 }
 
-# get the company stock info from alphavantage API
-ah_response = requests.get(AH_API_URL, params=ah_parameters)
-data = ah_response.json()['Time Series (Daily)']
+# User registration to pixe.la via password (token) and login (username)
+# user_register_params = {
+#     "token": TOKEN,
+#     "username": USERNAME,
+#     "agreeTermsOfService": "yes",
+#     "notMinor": "yes",
+# }
+#
+# response = requests.post(url=PIXELA_ENDPOINT, json=user_register_params)
 
-yesterday = datetime.date.today() - datetime.timedelta(days=1)
-day_before_yesterday = yesterday - datetime.timedelta(days=1)
+# Creating a new graph on pixe.la - in this case, for count the pages from everyday reading
+# graph_config = {
+#     "id": "graph1",
+#     "name": "Reading Graph",
+#     "unit": "pages",
+#     "type": "int",
+#     "color": "sora",
+# }
 
-yesterday_close_price = float(data[str(yesterday)]['4. close'])
-db_yesterday_close_price = float(data[str(day_before_yesterday)]['4. close'])
+# response = requests.post(url=GRAPH_ENDPOINT, json=graph_config, headers=headers)
 
-na_parameters = {
-    "apiKey": NA_APIKEY,
-    "q": COMPANY_NAME
+# Add new pixel for specific day
+# pixel_post_params = {
+#     "date": TODAY,
+#     "quantity": "5",
+# }
+
+# response = requests.post(url=PIXEL_POST_ENDPOINT, json=pixel_post_params, headers=headers)
+
+# Update pixel for specific day
+pixel_update_params = {
+    "quantity": "15"
 }
 
-# get the news about company from newsapi API
-na_response = requests.get(NA_API_URL, params=na_parameters)  # get the news about our company
-na_data = na_response.json()["articles"]
-
-# if the close price was changed by 1% or more - print the 3 newest articles about company
-if (yesterday_close_price-db_yesterday_close_price)/db_yesterday_close_price >= 0.01:
-    print(f"{COMPANY_NAME} price has changed by minimum 1%! (from {db_yesterday_close_price}$ to {yesterday_close_price}$)."
-          f" Here are some news about your company: \n")
-    for i in range(3):
-        print(na_data[i]['title'])
-        print(na_data[i]['description']+"\n")
+response = requests.put(url=PIXEL_UPDATE_ENDPOINT, json=pixel_update_params, headers=headers)
