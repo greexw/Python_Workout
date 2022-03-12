@@ -1,50 +1,38 @@
 import requests
 from datetime import datetime
 
-TODAY = datetime.now().strftime("%Y%m%d")
-USERNAME = ""
-TOKEN = ""
-PIXELA_ENDPOINT = "https://pixe.la/v1/users"
-GRAPH_ENDPOINT = f"{PIXELA_ENDPOINT}/{USERNAME}/graphs"
-PIXEL_POST_ENDPOINT = f"{PIXELA_ENDPOINT}/{USERNAME}/graphs/graph1"
-PIXEL_UPDATE_ENDPOINT = f"{PIXELA_ENDPOINT}/{USERNAME}/graphs/graph1/{TODAY}"
+NUTRITIONIX_APPID = ""
+NUTRITIONIX_KEY = ""
+NUTRITIONIX_ENDPOINT = "https://trackapi.nutritionix.com/v2/natural/exercise"
+SHEETY_ENDPOINT = "https://api.sheety.co/e0b61997ecfdcd3b24fffe8a1a3c37ef/myWorkouts/workouts"
+SHEETY_KEY = ""
 
 headers = {
-    "X-USER-TOKEN": TOKEN
+    "x-app-id": NUTRITIONIX_APPID,
+    "x-app-key": NUTRITIONIX_KEY,
 }
 
-# User registration to pixe.la via password (token) and login (username)
-# user_register_params = {
-#     "token": TOKEN,
-#     "username": USERNAME,
-#     "agreeTermsOfService": "yes",
-#     "notMinor": "yes",
-# }
-#
-# response = requests.post(url=PIXELA_ENDPOINT, json=user_register_params)
+query = input("Tell me about your exercises: ")
 
-# Creating a new graph on pixe.la - in this case, for count the pages from everyday reading
-# graph_config = {
-#     "id": "graph1",
-#     "name": "Reading Graph",
-#     "unit": "pages",
-#     "type": "int",
-#     "color": "sora",
-# }
+params = {
+    "query": query
+}
+# Get response about exercises details (duration, calories) from NUTRITRIONIX API
+response_google = requests.post(url=NUTRITIONIX_ENDPOINT, json=params, headers=headers).json()
 
-# response = requests.post(url=GRAPH_ENDPOINT, json=graph_config, headers=headers)
-
-# Add new pixel for specific day
-# pixel_post_params = {
-#     "date": TODAY,
-#     "quantity": "5",
-# }
-
-# response = requests.post(url=PIXEL_POST_ENDPOINT, json=pixel_post_params, headers=headers)
-
-# Update pixel for specific day
-pixel_update_params = {
-    "quantity": "15"
+# add exercises to google_sheets by Sheety API
+headers_gsheet = {
+    "authorization": SHEETY_KEY
 }
 
-response = requests.put(url=PIXEL_UPDATE_ENDPOINT, json=pixel_update_params, headers=headers)
+for exercise in response_google['exercises']:
+    params = {
+        'workout': {
+            "date": datetime.today().strftime('%d/%m/%Y'),
+            "time": datetime.now().strftime("%H:%M:%S"),
+            "exercise": exercise["name"].title(),
+            "duration": int(exercise["duration_min"]),
+            "calories": int(exercise["nf_calories"]),
+        }
+    }
+    requests.post(url=SHEETY_ENDPOINT, json=params, headers=headers_gsheet)
