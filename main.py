@@ -1,38 +1,39 @@
-import requests
-from datetime import datetime
+from data_manager import DataManager
+from flight_search import FlightSearch
 
-NUTRITIONIX_APPID = ""
-NUTRITIONIX_KEY = ""
-NUTRITIONIX_ENDPOINT = "https://trackapi.nutritionix.com/v2/natural/exercise"
-SHEETY_ENDPOINT = "https://api.sheety.co/e0b61997ecfdcd3b24fffe8a1a3c37ef/myWorkouts/workouts"
-SHEETY_KEY = ""
+from datetime import datetime, timedelta
 
-headers = {
-    "x-app-id": NUTRITIONIX_APPID,
-    "x-app-key": NUTRITIONIX_KEY,
-}
+# endpoint and Apikeys for Tequila&Sheety API's
+SHEETY_ENDPOINT = ""
+TEQUILA_ENDPOINT = 'https://tequila-api.kiwi.com'
+TEQUILA_APIKEY = ''
 
-query = input("Tell me about your exercises: ")
+# IATA code for origin airport/city
+ORIGIN_IATA = 'WRO'
 
-params = {
-    "query": query
-}
-# Get response about exercises details (duration, calories) from NUTRITRIONIX API
-response_google = requests.post(url=NUTRITIONIX_ENDPOINT, json=params, headers=headers).json()
+flight_search = FlightSearch(TEQUILA_ENDPOINT, TEQUILA_APIKEY)
+data_manager = DataManager(SHEETY_ENDPOINT)
 
-# add exercises to google_sheets by Sheety API
-headers_gsheet = {
-    "authorization": SHEETY_KEY
-}
+# get the datasheet with destinations and low prices
+sheet_data = data_manager.get_datasheet()
 
-for exercise in response_google['exercises']:
-    params = {
-        'workout': {
-            "date": datetime.today().strftime('%d/%m/%Y'),
-            "time": datetime.now().strftime("%H:%M:%S"),
-            "exercise": exercise["name"].title(),
-            "duration": int(exercise["duration_min"]),
-            "calories": int(exercise["nf_calories"]),
-        }
-    }
-    requests.post(url=SHEETY_ENDPOINT, json=params, headers=headers_gsheet)
+# get IATA code for city if not exists
+for sheet in sheet_data:
+    if sheet['iataCode'] == '':
+        sheet['iataCode'] = flight_search.get_iata(sheet['city'])
+
+# update datasheets with IATA codes
+data_manager.update_datasheet(sheet_data)
+
+# get tomorrow and year from today dates
+tomorrow = datetime.now() + timedelta(days=1)
+year_from_today = datetime.now() + timedelta(days=(12 * 30))
+
+# check the flights to all destinations - from today to day year of today. If price of the flight is lower than price
+# in sheet - print about founded low price fly
+for sheet in sheet_data:
+    flight = flight_search.check_flights(ORIGIN_IATA, sheet["iataCode"], tomorrow, year_from_today)
+    if flight:
+        if flight.price < sheet['lowestPrice']:
+            print(f'Low price! From {flight.origin_city} to {flight.destination_city}.\nPrice: {flight.price}\n'
+                  f'fly date: {flight.out_date}\nreturn date: {flight.return_date}')
